@@ -1,0 +1,8 @@
+transformers
+datasets
+torchaudio
+accelerate
+jiwer
+huggingface-hub==0.24.0
+soundfile
+librosa
