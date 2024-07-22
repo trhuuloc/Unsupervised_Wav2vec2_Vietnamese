@@ -77,7 +77,7 @@ if __name__ == '__main__':
         audio_name = "audio"
         eval_dataset = eval_dataset.map(prepare_dataset, num_proc=1)
     elif eval_data == "common-voice":
-        eval_dataset = load_dataset("mozilla-foundation/common_voice_11_0", "vi", split="test")
+        eval_dataset = load_dataset("mozilla-foundation/common_voice_11_0", "vi", split="test", trust_remote_code=True)
         eval_dataset = eval_dataset.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "segment", "up_votes"])
         
         labels_name = "sentence"
