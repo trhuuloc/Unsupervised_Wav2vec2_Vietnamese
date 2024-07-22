@@ -1,8 +1,7 @@
 transformers
-datasets
+datasets==2.20.0
 torchaudio
-accelerate
 jiwer
-huggingface-hub==0.24.0
+numpy
 soundfile
 librosa
