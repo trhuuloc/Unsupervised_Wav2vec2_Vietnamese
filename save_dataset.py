@@ -62,17 +62,9 @@ def avoid_OOM(percent=60):
     print(f"Memory reached {memo[2]}%, terminate to avoid out of memory")
     sys.exit(0)
     
-def delete_folder(path):
-    def remove_readonly(func, path, exc_info):
-        os.chmod(path, 0o777)
-        func(path)
-    try:
-        if os.path.isdir(path):
-            shutil.rmtree(path, onerror=remove_readonly)
-        else:
-            print(f"{path} is not a directory")
-    except PermissionError as e:
-        print(f"Error: {e}")
+def clear_audio_folder_cache(path):
+  shutil.rmtree(pathlib.Path(path), ignore_errors=False)
+  print(f'Cleared audio folder cache at {path}')
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -89,7 +81,7 @@ if __name__ == '__main__':
     out_dir = args.output_dir
     labels_name = args.labels_column_name
     audio_name = args.audio_column_name
-    # cache_dir_var = args.cache_dir
+    cache_dir = args.cache_dir
     
     if not os.path.exists(out_dir):
         os.mkdir(out_dir) 
@@ -101,15 +93,11 @@ if __name__ == '__main__':
     processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
 
     for i in a:
-        with tempfile.TemporaryDirectory() as cache_dir_var:
-            try:
-                dataset = load_dataset("audiofolder", data_dir=i, split="train",trust_remote_code=True, cache_dir=cache_dir_var)
-                dataset = dataset.map(remove_special_characters)    
-                avoid_OOM(70)
-                dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names, num_proc=1)
+        dataset = load_dataset("audiofolder", data_dir=i, split="train",trust_remote_code=True, cache_dir=cache_dir)
+        dataset = dataset.map(remove_special_characters)    
+        avoid_OOM(70)
+        dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names, num_proc=1)
 
-                path = extract_path(i, input_dir)
-                dataset.save_to_disk(os.path.join(out_dir,path))
-            finally:
-                delete_folder(cache_dir_var)
+        path = extract_path(i, input_dir)
+        dataset.save_to_disk(os.path.join(out_dir,path))
             
