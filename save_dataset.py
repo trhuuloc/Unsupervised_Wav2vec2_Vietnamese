@@ -29,6 +29,7 @@ def list_leaf_dirs(root_dir: pathlib.Path):
   return leaf_dirs
 
 def extract_path(path, need):
+    need = os.path.basename(need)
     # print(need)
     subpath = path.parts[path.parts.index(need) + 1:]
     return pathlib.Path(*subpath)
@@ -99,5 +100,6 @@ if __name__ == '__main__':
         dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names, num_proc=1)
 
         path = extract_path(i, input_dir)
+        # print(os.path.join(out_dir,path))
         dataset.save_to_disk(os.path.join(out_dir,path))
             
