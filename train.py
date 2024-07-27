@@ -140,6 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir',type=str, required=True)
     parser.add_argument('--num_epochs',type=int, required=True)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--batch', type=int, default=16)
 
     args = parser.parse_args()
     
@@ -147,6 +148,7 @@ if __name__ == '__main__':
     out_dir = args.output_dir
     epoch = args.num_epochs
     learning_rate = args.learning_rate
+    batch_size = args.batch
     
     dataset_paths = list_leaf_dirs(input_dir)
     datasets = [load_from_disk(str(path)) for path in dataset_paths]
@@ -170,7 +172,7 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         output_dir=out_dir,
         group_by_length=True,
-        per_device_train_batch_size=16,
+        per_device_train_batch_size=batch_size,
         evaluation_strategy="steps",
         num_train_epochs=epoch,
         gradient_checkpointing=True,
@@ -194,6 +196,7 @@ if __name__ == '__main__':
         tokenizer=processor.feature_extractor,
     )
 
+    print('Start training:')
     trainer.train()
 
     checkpoint = get_checkpoint(out_dir)
