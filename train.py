@@ -141,6 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_epochs',type=int, required=True)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--batch', type=int, default=16)
+    parser.add_argument('--logging_steps', type=int, default = 100)
 
     args = parser.parse_args()
     
@@ -149,11 +150,13 @@ if __name__ == '__main__':
     epoch = args.num_epochs
     learning_rate = args.learning_rate
     batch_size = args.batch
+    log = args.logging_steps
     
     dataset_paths = list_leaf_dirs(input_dir)
     datasets = [load_from_disk(str(path)) for path in dataset_paths]
     dataset = concatenate_datasets(datasets)
     eval_dataset = load_from_disk(str(dataset_paths[0]))
+    print(str(dataset_paths[0]))
 
     model = Wav2Vec2ForCTC.from_pretrained(
         "facebook/wav2vec2-base",
@@ -179,11 +182,11 @@ if __name__ == '__main__':
         fp16=True,
         save_steps=0.1,
         eval_steps=0.1,
-        logging_steps=0.1,
+        logging_steps=log,
         learning_rate=learning_rate,
         weight_decay=0.005,
         warmup_steps=500,
-        save_total_limit=2,
+        save_total_limit=10,
     )
 
     trainer = Trainer(
