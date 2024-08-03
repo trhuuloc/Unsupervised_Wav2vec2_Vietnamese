@@ -11,6 +11,7 @@ from transformers import TrainingArguments, Trainer
 import argparse
 import pathlib
 import os
+from evaluate import load
 
 
 ### FIND LEAF DIRECTORIES
@@ -103,9 +104,9 @@ def compute_metrics(pred):
     # we do not want to group tokens when computing the metrics
     label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
     print(label_str[0:5])
-    wer = wer_metric.compute(predictions=pred_str, references=label_str)
+    wer_score = wer.compute(predictions=pred_str, references=label_str)
 
-    return {"wer": wer}
+    return {"wer": wer_score}
 
 ### GET CHECKPOINT
 def get_num(file):
@@ -130,7 +131,7 @@ feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, sampling_rate=16000
 processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
 
 data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
-wer_metric = load_metric("wer", trust_remote_code = True)
+wer = load("wer")
 
 if __name__ == '__main__':
     
@@ -170,16 +171,17 @@ if __name__ == '__main__':
         vocab_size=len(processor.tokenizer),
     )
 
-    model.freeze_feature_extractor()
+    model.gradient_checkpointing_enable()
+    model.freeze_feature_encoder()
 
     training_args = TrainingArguments(
         output_dir=out_dir,
         group_by_length=True,
         per_device_train_batch_size=batch_size,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         num_train_epochs=epoch,
-        gradient_checkpointing=True,
         fp16=True,
+        gradient_checkpointing=True,
         save_steps=0.1,
         eval_steps=0.1,
         logging_steps=log,
